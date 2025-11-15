@@ -89,7 +89,7 @@ jobs:
           wget "$deb_url" --no-verbose -O ${{ github.workspace }}/glow_fb.deb
 
       - name: Inject tweaks into IPA
-        run: cyan -i facebook.ipa -o Glow_FB_${{ env.GLOW_TAG }}.ipa -uwef glow_fb.deb -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }} -s
+        run: cyan -i facebook.ipa -o Glow_FB_${{ env.GLOW_TAG }}.ipa -uwf glow_fb.deb -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Strip embedded Swift dylibs
         run: |
