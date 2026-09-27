@@ -4,6 +4,11 @@ on:
   workflow_dispatch:
     inputs:
 
+      enable_localization:
+        type: boolean
+        required: true
+        default: true
+
       ipa_url:
         description: "URL to the decrypted IPA file"
         default: ""
@@ -35,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout Main
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v7.0.1
         with:
           path: main
           submodules: recursive
@@ -57,7 +62,7 @@ jobs:
           fi
 
       - name: Install Dependencies
-        run: brew install make ldid
+        run: brew install make ldid dpkg
 
       - name: Set PATH environment variable
         run: echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
@@ -88,6 +93,21 @@ jobs:
           echo "Downloading: $deb_url"
           wget "$deb_url" --no-verbose -O ${{ github.workspace }}/glow_fb.deb
 
+      - name: Update localization
+        if: ${{ inputs.enable_localization }}
+        run: |
+          mkdir debdir
+          dpkg-deb -R glow_fb.deb debdir
+          rm glow_fb.deb
+          find "Lozalizations" \
+            -mindepth 1 -maxdepth 1 -type d -name "*.lproj" -not -name "Base.lproj" \
+            -exec cp -R "{}" "debdir/Library/Application Support/Glow.bundle/" \;
+          cd debdir/
+          find . -type f -not -path "./DEBIAN/*" -exec md5sum {} + | sort -k 2 | sed 's/\.\/\(.*\)/\1/' > DEBIAN/md5sums
+          cd ../
+          dpkg-deb --root-owner-group -b debdir glow_fb.deb
+
+
       - name: Inject tweaks into IPA
         run: cyan -i facebook.ipa -o Glow_FB_${{ env.GLOW_TAG }}.ipa -uwf glow_fb.deb -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
@@ -100,7 +120,7 @@ jobs:
           cd ..
           mv Glow_FB_${{ env.GLOW_TAG }}_clean.ipa Glow_FB_${{ env.GLOW_TAG }}.ipa
 
-      - uses: softprops/action-gh-release@v2.0.1
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: glow-fb-${{ env.GLOW_TAG }}
           name: Glow_FB ${{ env.GLOW_TAG }}
