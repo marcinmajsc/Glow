@@ -39,11 +39,8 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout Main
+      - name: Checkout
         uses: actions/checkout@v7.0.1
-        with:
-          path: main
-          submodules: recursive
 
       - name: Hide sensitive inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
