@@ -99,7 +99,7 @@ jobs:
           mkdir debdir
           dpkg-deb -R glow_fb.deb debdir
           rm glow_fb.deb
-          find "Lozalizations" \
+          find "Localizations" \
             -mindepth 1 -maxdepth 1 -type d -name "*.lproj" -not -name "Base.lproj" \
             -exec cp -R "{}" "debdir/Library/Application Support/Glow.bundle/" \;
           cd debdir/
